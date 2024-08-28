@@ -4,36 +4,79 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Laser Hair Game</title>
-  </head>
-  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
-    <canvas id="unity-canvas" width=960 height=600 style="width: 960px; height: 600px; background: #231F20"></canvas>
-    <script src="Build/HarGame.loader.js"></script>
-    <script>
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-
-        var canvas = document.querySelector("#unity-canvas");
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        canvas.style.position = "fixed";
-
-        document.body.style.textAlign = "left";
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+        overflow: hidden; /* Prevent scrolling */
+        text-align: center;
       }
 
+      canvas {
+        background: #333333;
+        display: block;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas"></canvas>
+    <script src="Build/HairGame.loader.js"></script>
+    <script>
+      var isAspectRatioLocked = false;
+      var targetAspectRatio;
+
+      function adjustCanvasSize() {
+        var canvas = document.querySelector("#unity-canvas");
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // Lock aspect ratio after the game starts
+        if (!isAspectRatioLocked) {
+          if (isMobile) {
+            // Portrait mode for mobile devices
+            targetAspectRatio = 600 / 960;
+          } else {
+            // Landscape mode for desktop
+            targetAspectRatio = 960 / 600;
+          }
+          isAspectRatioLocked = true;
+        }
+
+        // Adjust canvas size based on locked aspect ratio
+        var windowAspectRatio = window.innerWidth / window.innerHeight;
+
+        if (windowAspectRatio < targetAspectRatio) {
+          // Window is taller than the target aspect ratio, adjust width
+          canvas.style.width = window.innerWidth + "px";
+          canvas.style.height = (window.innerWidth / targetAspectRatio) + "px";
+        } else {
+          // Window is wider than the target aspect ratio, adjust height
+          canvas.style.width = (window.innerHeight * targetAspectRatio) + "px";
+          canvas.style.height = window.innerHeight + "px";
+        }
+      }
+
+      // Adjust the canvas size when the window resizes or orientation changes
+      window.addEventListener('resize', adjustCanvasSize);
+
+      // Initial adjustment of canvas size
+      adjustCanvasSize();
+
+      // Create Unity instance
       createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/HarGame.data.unityweb",
-        frameworkUrl: "Build/HarGame.framework.js.unityweb",
-        codeUrl: "Build/HarGame.wasm.unityweb",
+        dataUrl: "Build/HairGame.data.unityweb",
+        frameworkUrl: "Build/HairGame.framework.js.unityweb",
+        codeUrl: "Build/HairGame.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "EvaYan",
         productName: "Laser Hair Game",
         productVersion: "1.0",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      }).then(function() {
+        // Once the game starts, keep the aspect ratio locked and don't allow further changes
+        isAspectRatioLocked = true;
       });
     </script>
   </body>
