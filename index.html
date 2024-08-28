@@ -5,67 +5,66 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Laser Hair Game</title>
     <style>
-      body {
-        padding: 0;
+      body, html {
         margin: 0;
-        overflow: hidden; /* Prevent scrolling */
-        text-align: center;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #231F20; /* Dark grey background */
       }
-
-      canvas {
-        background: #231F20;
-        display: block;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+      #unity-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #unity-canvas {
+        background: #231F20; /* Dark grey background for the canvas */
+        width: 100%;
+        height: 100%;
       }
     </style>
   </head>
   <body>
-    <canvas id="unity-canvas"></canvas>
+    <div id="unity-container">
+      <canvas id="unity-canvas"></canvas>
+    </div>
+
     <script src="Build/HairGame.loader.js"></script>
     <script>
-      var isAspectRatioLocked = false;
-      var targetAspectRatio;
-
       function adjustCanvasSize() {
         var canvas = document.querySelector("#unity-canvas");
         var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // Lock aspect ratio after the game starts
-        if (!isAspectRatioLocked) {
-          if (isMobile) {
-            // Portrait mode for mobile devices
-            targetAspectRatio = 600 / 960;
-          } else {
-            // Landscape mode for desktop
-            targetAspectRatio = 960 / 600;
-          }
-          isAspectRatioLocked = true;
-        }
 
-        // Adjust canvas size based on locked aspect ratio
-        var windowAspectRatio = window.innerWidth / window.innerHeight;
+        if (isMobile) {
+          // Add meta tag for mobile view
+          var meta = document.createElement('meta');
+          meta.name = 'viewport';
+          meta.content = 'width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+          document.getElementsByTagName('head')[0].appendChild(meta);
 
-        if (windowAspectRatio < targetAspectRatio) {
-          // Window is taller than the target aspect ratio, adjust width
-          canvas.style.width = window.innerWidth + "px";
-          canvas.style.height = (window.innerWidth / targetAspectRatio) + "px";
+          // Let Unity's WebGL handle canvas scaling; just make sure the canvas fills the screen
+          canvas.style.width = "100%";
+          canvas.style.height = "auto";
         } else {
-          // Window is wider than the target aspect ratio, adjust height
-          canvas.style.width = (window.innerHeight * targetAspectRatio) + "px";
-          canvas.style.height = window.innerHeight + "px";
+          // Desktop (landscape) mode: make the canvas cover the entire screen.
+          canvas.style.width = "100%";
+          canvas.style.height = "100%";
         }
       }
 
-      // Adjust the canvas size when the window resizes or orientation changes
+      // Listen for window resize to re-adjust the canvas size
       window.addEventListener('resize', adjustCanvasSize);
-
-      // Initial adjustment of canvas size
+      
+      // Initial call to adjust canvas size
       adjustCanvasSize();
 
-      // Create Unity instance
+      // Create Unity WebGL instance
       createUnityInstance(document.querySelector("#unity-canvas"), {
         dataUrl: "Build/HairGame.data.unityweb",
         frameworkUrl: "Build/HairGame.framework.js.unityweb",
@@ -74,9 +73,6 @@
         companyName: "EvaYan",
         productName: "Laser Hair Game",
         productVersion: "1.0",
-      }).then(function() {
-        // Once the game starts, keep the aspect ratio locked and don't allow further changes
-        isAspectRatioLocked = true;
       });
     </script>
   </body>
